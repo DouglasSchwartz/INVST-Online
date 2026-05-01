@@ -4,9 +4,7 @@ import {
   AppScreen, 
   UserProfile, 
   Debts, 
-  Budget,
   InvestorProfile,
-  PortfolioAllocation,
   MaritalStatus,
   IncomeType,
   HealthcarePayer,
@@ -89,6 +87,14 @@ const INVESTMENT_SCREEN_FLOW: AppScreen[] = [
   'risk-tolerance',
   'portfolio-result',
 ];
+
+/** Debt/healthcare amount steps sit between main flow screens (for progress bar). */
+const AMOUNT_SCREEN_TO_FLOW_PARENT: Partial<Record<AppScreen, AppScreen>> = {
+  'credit-card-amount': 'credit-card-debt',
+  'student-loan-amount': 'student-loans',
+  'hospital-bill-amount': 'hospital-bills',
+  'healthcare-amount': 'healthcare',
+};
 
 export function useAppState() {
   const [state, setState] = useState<AppState>(initialState);
@@ -506,18 +512,20 @@ export function useAppState() {
 
   // Calculate progress
   const getProgress = useCallback(() => {
-    const totalSteps = BUDGET_SCREEN_FLOW.length - 1;
-    const currentIndex = BUDGET_SCREEN_FLOW.indexOf(state.currentScreen);
-    
-    if (currentIndex <= 0) return 0;
     if (state.currentScreen === 'budget-result') return 100;
-    
-    let adjustedIndex = currentIndex;
-    if (state.currentScreen.includes('amount')) {
-      adjustedIndex = BUDGET_SCREEN_FLOW.indexOf(state.currentScreen.replace('-amount', '')) + 0.5;
+
+    const totalSteps = BUDGET_SCREEN_FLOW.length - 1;
+    const parent = AMOUNT_SCREEN_TO_FLOW_PARENT[state.currentScreen];
+    if (parent !== undefined) {
+      const parentIndex = BUDGET_SCREEN_FLOW.indexOf(parent);
+      const adjustedIndex = parentIndex + 0.5;
+      return Math.round((adjustedIndex / totalSteps) * 100);
     }
-    
-    return Math.round((adjustedIndex / totalSteps) * 100);
+
+    const currentIndex = BUDGET_SCREEN_FLOW.indexOf(state.currentScreen);
+    if (currentIndex <= 0) return 0;
+
+    return Math.round((currentIndex / totalSteps) * 100);
   }, [state.currentScreen]);
 
   // Calculate investment progress

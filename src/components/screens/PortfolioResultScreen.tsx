@@ -12,7 +12,7 @@ interface PortfolioResultScreenProps {
 
 export function PortfolioResultScreen({
   portfolio,
-  budget,
+  budget: _budget,
   onReset,
   onBackToBudget,
 }: PortfolioResultScreenProps) {
